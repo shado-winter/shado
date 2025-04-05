@@ -1,56 +1,77 @@
-using namespace std;
-#include<iostream>
+#include <iostream>      
+#include <fstream>      
+#include <vector>       
+#include <iomanip>       
+#include <algorithm>     
+
+using namespace std;     
 
 int main() {
+    
+    ifstream inFile("numdata.txt");  // create an input file stream to read from "numdata.txt"
+    if (!inFile) {                   // check if the file couldn't be opened
+        cerr << "Error opening input file.\n"; 
+        return 1;                   
+    }
 
-	double a;
-	a = 9.81;
+    vector<double> data;  // declare a vector to store all the double values from the file
+    double value;         
 
-	double* pa = &a;
+    // Read all values from the file into the vector
+    while (inFile >> value) {  
+        data.push_back(value);
+    }
+    inFile.close();  
 
-	//array b
-	double b[4];
-	b[0] = 1.5;
-	b[1] = 3.0;
-	b[2] = 5.5;
-	b[3] = 7.0;
+    // Sort the values in ascending order (smallest to largest)
+    sort(data.begin(), data.end()); 
 
-	//pointer pb
-	double* pb = &b[0];
+    // Open the output file to write the sorted values
+    ofstream sortedFile("sorted.txt"); 
+    if (!sortedFile) {                 
+        cerr << "Error opening sorted output file.\n";
+        return 1;                    
+    }
 
-	//pointer pc with 'new'
-	double* pc = new double;
+    // Write each sorted value to the file with 2 decimal places
+    for (double num : data) {                        
+        sortedFile << fixed << setprecision(2) << num << endl;
+    }
+    sortedFile.close(); 
 
-	*pc = 3.14;
+    // Create a histogram: 10 bins for ranges 0-10, 10-20, ..., 90-100
+    const int BIN_COUNT = 10;   
+    int histogram[BIN_COUNT] = { 0 };
 
-	double* pd = new double[4];
+    // Count how many numbers fall into each bin
+    for (double num : data) {            
+        if (num >= 0.0 && num < 100.0) { 
+            int binIndex = static_cast<int>(num) / 10; 
+            histogram[binIndex]++;       // increase the count for the correct bin
+        }
+    }
 
-	pd[0] = 0.5;
-	pd[1] = 2.0;
-	pd[2] = 4.5;
-	pd[3] = 6.0;
+    // Open the histogram output file
+    ofstream histFile("histogram.txt"); 
+    if (!histFile) {                 
+        cerr << "Error opening histogram output file.\n";
+        return 1;                        
+    }
 
+    // Write the histogram header
+    histFile << "Bin       Number of Values\n"; 
 
-	//display
-	cout << "Variable\tAddress\t\tValue" << endl;
-	cout << "______________________________" << endl;
+    // Write each bin range and the number of values in that range
+    for (int i = 0; i < BIN_COUNT; ++i) {      // loop from bin 0 to 9
+        int lower = i * 10;                   
+        int upper = lower + 10;                
+        histFile << setw(2) << lower << "-" << setw(3) << upper  // print bin label
+            << "     " << histogram[i] << endl;             // print count for that bin
+    }
 
-	cout << "a\t" << &a << "\t" << a << endl;
-	cout << "pa\t" << pa << "\t" << *pa << endl;
+    histFile.close();  // close the histogram output file
 
-	for (int i = 0; i < 4; i++) {
-		cout << "b[" << i << "]\t" << &b[i] << "\t" << b[i] << endl;
-	}
+    cout << "Program completed. Output written to 'sorted.txt' and 'histogram.txt'.\n";
 
-	for (int i = 0; i < 4; i++) {
-		cout << "pb[" << i << "]\t" << (pb + i) << "\t" << *(pb + i) << endl;
-	}
-
-	cout << "pc\t" << pc << "\t" << *pc << endl;
-
-	for (int i = 0; i < 4; i++) {
-		cout << "pd[" << i << "]\t" << (pd + i) << "\t" << *(pd + i) << endl;
-	}
-
-	return 0;
+    return 0; 
 }
